@@ -4459,27 +4459,27 @@ function triggerSetPiece(ls, type) {
   let label, by, bx, hold = 2000;
   if (type === 'corner') {
     label = `Corner to ${name}`;
-    by = side === 'h' ? 8 : 142; bx = Math.random() < 0.5 ? 6 : 94;
+    by = side === 'h' ? 1 : 149; bx = Math.random() < 0.5 ? 1 : 99;
   } else if (type === 'throwin') {
     label = `Throw-in, ${name}`;
-    by = 15 + Math.random() * 120; bx = Math.random() < 0.5 ? 6 : 94;
+    by = 15 + Math.random() * 120; bx = Math.random() < 0.5 ? 0.5 : 99.5;
     hold = 1300;
   } else if (type === 'freekick') {
     label = `Free kick to ${name}`;
-    by = side === 'h' ? 20 + Math.random() * 70 : 60 + Math.random() * 70;
-    bx = 30 + Math.random() * 40;
+    by = side === 'h' ? 26 + Math.random() * 40 : 84 + Math.random() * 40;
+    bx = 14 + Math.random() * 72;
   } else {
     const goalEv = ls.ctx.ev.find(e => e.type === 'goal' && e.side === side && !e._shown && e.min >= ls.minute && e.min <= ls.minute + 2);
     if (goalEv) goalEv.penalty = true;
     label = `PENALTY to ${name}!`;
-    by = side === 'h' ? 18 : 132; bx = 50;
+    by = side === 'h' ? 15.75 : 134.25; bx = 50;
     hold = goalEv ? 1200 : 2800;
     if (!goalEv) {
       setTimeout(() => { if (liveState === ls) liveBanner(Math.random() < 0.5 ? `${name} fire it wide!` : 'Saved! Great stop by the keeper!'); }, 1300);
     }
   }
   ls.ball.ty = by; ls.ball.tx = bx; ls.ballY = by; ls.ballX = bx;
-  ls.ballHoldUntil = performance.now() + hold;
+  if (G.liveView === '3d') hold += 1400;   ls.ballHoldUntil = performance.now() + hold;   ls.sp = { type, side, left: (1 - by / 150) * 100, top: bx, until: performance.now() + hold };
   liveBanner(label);
   pushSetPieceTick(label);
   clearTimeout(ls.flashT);
