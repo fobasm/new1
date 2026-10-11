@@ -4549,6 +4549,12 @@ function liveTick() {
     }
     ls.ctx.ev.forEach(e => {
       if (!e._shown && e.min <= ls.minute) {
+        if (e.type === 'card' && e.card !== 'red') {
+          const priorYellow = ls.ctx.ev.some(k => k !== e && k._shown && k.type === 'card' && k.card === 'yellow' && k.scorer === e.scorer);
+          const priorRed = ls.ctx.ev.some(k => k !== e && k._shown && k.type === 'card' && k.card === 'red' && k.scorer === e.scorer);
+          if (priorRed) { e._shown = true; return; }
+          if (priorYellow) { e.card = 'red'; e.secondYellow = true; ls.ctx.ev.push({ min: 0, type: 'card', card: 'red2', side: e.side, team: e.team, scorer: e.scorer, sName: e.sName, _hidden: true, _shown: true }); }
+        }
         e._shown = true; pushTick(e);
         if (e.type === 'goal') {
           liveBanner((e.penalty ? '⚽ PENALTY SCORED! ' : '⚽ GOAL! ') + e.sName);
