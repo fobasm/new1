@@ -1834,8 +1834,28 @@ if (rnd() < 0.9 * frac * 2) {
     }
   });
   made.sort((x, y) => x.min - y.min);
-  ctx.ev = ctx.ev.concat(made);
-  return made;
+  /* a sent-off player can't score, get booked, or get injured again afterwards */
+  const dismissedAt = {};
+  made.forEach(e => { if (e.type === 'card' && e.card === 'red') dismissedAt[e.scorer] = Math.min(dismissedAt[e.scorer] ?? 1e9, e.min); });
+  const isOut = (id, min) => dismissedAt[id] != null && min > dismissedAt[id];
+  const kept = [];
+  made.forEach(e => {
+    if (e._hidden) { kept.push(e); return; }
+    if (e.type === 'card' && e.card === 'red') { kept.push(e); return; }
+    if (!isOut(e.scorer, e.min)) { kept.push(e); return; }
+    if (e.type === 'goal') {
+      const side = e.side, xi = side === 'h' ? ctx.xiH : ctx.xiA, slots = side === 'h' ? ctx.slotsH : ctx.slotsA;
+      const cand = xi.map((p, idx) => ({ p, slot: slots[idx] || p.pos })).filter(x => !isOut(x.p.id, e.min));
+      if (!cand.length) { if (side === 'h') ctx.hg--; else ctx.ag--; return; }
+      const sc = wpick(cand, x => POS_ATT[x.slot] * Math.pow(x.p.rating / 68, 1.8)).p;
+      e.scorer = sc.id; e.sName = sc.name;
+      if (e.assist && isOut(e.assist, e.min)) { e.assist = null; e.aName = null; }
+      kept.push(e);
+    }
+    /* booking or injury for an already-dismissed player: drop it */
+  });
+  ctx.ev = ctx.ev.concat(kept);
+  return kept;
 }
 
 function makeSub(ctx, side, outId, inPlayer) {
