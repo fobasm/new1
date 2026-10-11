@@ -4487,10 +4487,10 @@ function triggerSetPiece(ls, type) {
 }
 function liveTick() {
   const ls = liveState;
-  if (!ls || ls.paused) return;
+  if (!ls || ls.paused) return;   if (ls.bs && ls.bs.script && !ls.bs.script.done && performance.now() < ls.bs.script.deadline) { ls.timer = setTimeout(liveTick, 100); return; }
   try {
     ls.minute++;
-    if (!ls.ballHoldUntil || performance.now() > ls.ballHoldUntil) {
+    if (!ls.bs && (!ls.ballHoldUntil || performance.now() > ls.ballHoldUntil)) {
       const s = ls.ctx.sh.att - ls.ctx.sa.att;
       const bias = clamp(s * 0.4, -5, 5);
       ls.ball.ty = clamp(ls.ballY - bias + (Math.random() - 0.5) * 70, 6, 144);
@@ -4527,6 +4527,7 @@ function liveTick() {
     });
     liveStatsTick(ls);
     updateLiveScore();
+bsLook(ls);
     const endAt = ls.half === 1 ? 45 : 92;
     if (ls.minute >= endAt) {
       ls.timer = null;
