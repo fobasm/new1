@@ -4620,9 +4620,13 @@ const LIVE_REDUCE_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-r
     const ball = $('#liveBall'); if (ball) { ball.style.left = ballLeft + '%'; ball.style.top = ballTop + '%'; }
     const terr = (ballLeft - 50) / 50;
     ls.shapeShift = (ls.shapeShift || 0) + (terr * 11 - (ls.shapeShift || 0)) * 0.012;
+    const sentOff = pid => ls.ctx.ev.some(e => e._shown && e.type === 'card' && e.card === 'red' && e.scorer === pid);
     const drawSide = (coords, prefix, away) => {
+      const xiArr = prefix === 'h' ? ls.ctx.xiH : ls.ctx.xiA;
       coords.forEach((cc, i) => {
         const el = $('#lv-' + prefix + i); if (!el) return;
+        const pl = xiArr[i];
+        if (pl && sentOff(pl.id)) { el.style.opacity = '0.3'; el.style.pointerEvents = 'none'; el.style.filter = 'grayscale(1)'; return; }
         const isGK = i === 0, role = cc[1] / 100;
         const advX = cc[1] * 0.48;
         let bx = away ? (100 - advX) : advX, by = away ? (100 - cc[0]) : cc[0];
@@ -4685,16 +4689,17 @@ const LIVE_REDUCE_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-r
   };
   $('#modal .x').onclick = resume;
   let selOut = null;
+  const isSentOffHT = pid => ls.ctx.ev.some(e => e._shown && e.type === 'card' && e.card === 'red' && e.scorer === pid);
   const paint = () => {
     const on = ls.mySide === 'h' ? ls.ctx.xiH : ls.ctx.xiA;
     $('#onList').innerHTML = on.map((p, i) =>
-      `<button class="prow" data-out="${p.id}" style="grid-template-columns:auto 1fr auto;padding:5px 6px;${selOut === p.id ? 'background:var(--panel2);box-shadow:inset 0 0 0 1px var(--gold)' : ''}">
-        ${ratingTag(p.rating)}<span class="who"><b>${esc(p.name)}</b><small>${slots[i] || p.pos}</small></span>${posTag(p.pos)}</button>`).join('');
+      `<button class="prow" data-out="${p.id}" ${isSentOffHT(p.id) ? 'disabled' : ''} style="grid-template-columns:auto 1fr auto;padding:5px 6px;${selOut === p.id ? 'background:var(--panel2);box-shadow:inset 0 0 0 1px var(--gold)' : ''}${isSentOffHT(p.id) ? 'opacity:.45' : ''}">
+        ${ratingTag(p.rating)}<span class="who"><b>${esc(p.name)}</b><small>${isSentOffHT(p.id) ? 'Sent off' : (slots[i] || p.pos)}</small></span>${posTag(p.pos)}</button>`).join('');
     $('#benchList').innerHTML = bench.length ? bench.map(p =>
       `<button class="prow" data-in="${p.id}" style="grid-template-columns:auto 1fr auto;padding:5px 6px">
         ${ratingTag(p.rating)}<span class="who"><b>${esc(p.name)}</b><small>${p.pos} · ${p.age}</small></span>${flagSVG(p.nat)}</button>`).join('')
       : '<p class="hint" style="padding:6px">Nobody fit on the bench.</p>';
-    document.querySelectorAll('[data-out]').forEach(b => b.onclick = () => { selOut = +b.dataset.out; paint(); });
+    document.querySelectorAll('[data-out]').forEach(b => b.onclick = () => { if (b.disabled) return; selOut = +b.dataset.out; paint(); });
     document.querySelectorAll('[data-in]').forEach(b => b.onclick = () => {
       if (selOut == null) { toast('Pick the player coming off first.'); return; }
       const usedNow = ls.mySide === 'h' ? ls.ctx.subsH : ls.ctx.subsA;
