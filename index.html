@@ -4557,12 +4557,6 @@ function liveTick() {
     }
     ls.ctx.ev.forEach(e => {
       if (!e._shown && e.min <= ls.minute) {
-        if (e.type === 'card' && e.card !== 'red') {
-          const priorYellow = ls.ctx.ev.some(k => k !== e && k._shown && k.type === 'card' && k.card === 'yellow' && k.scorer === e.scorer);
-          const priorRed = ls.ctx.ev.some(k => k !== e && k._shown && k.type === 'card' && k.card === 'red' && k.scorer === e.scorer);
-          if (priorRed) { e._shown = true; return; }
-          if (priorYellow) { e.card = 'red'; e.secondYellow = true; ls.ctx.ev.push({ min: 0, type: 'card', card: 'red2', side: e.side, team: e.team, scorer: e.scorer, sName: e.sName, _hidden: true, _shown: true }); }
-        }
         e._shown = true; pushTick(e);
         if (e.type === 'goal') {
           liveBanner((e.penalty ? '⚽ PENALTY SCORED! ' : '⚽ GOAL! ') + e.sName);
@@ -4653,12 +4647,15 @@ const LIVE_REDUCE_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-r
     const terr = (ballLeft - 50) / 50;
     ls.shapeShift = (ls.shapeShift || 0) + (terr * 11 - (ls.shapeShift || 0)) * 0.012;
     const sentOff = pid => ls.ctx.ev.some(e => e._shown && e.type === 'card' && e.card === 'red' && e.scorer === pid);
+    const injKey = ls.injury && now < ls.injury.until ? ls.injury.key : null;
     const drawSide = (coords, prefix, away) => {
       const xiArr = prefix === 'h' ? ls.ctx.xiH : ls.ctx.xiA;
       coords.forEach((cc, i) => {
         const el = $('#lv-' + prefix + i); if (!el) return;
         const pl = xiArr[i];
         if (pl && sentOff(pl.id)) { el.style.opacity = '0.3'; el.style.pointerEvents = 'none'; el.style.filter = 'grayscale(1)'; return; }
+        if (injKey === (prefix + i)) { el.style.opacity = '1'; el.style.pointerEvents = 'none'; el.style.filter = 'none'; el.style.transform = (away ? 'scaleY(-1) ' : '') + 'rotate(' + (away ? -90 : 90) + 'deg)'; return; }
+        else { el.style.transform = ''; }
         const isGK = i === 0, role = cc[1] / 100;
         const advX = cc[1] * 0.48;
         let bx = away ? (100 - advX) : advX, by = away ? (100 - cc[0]) : cc[0];
