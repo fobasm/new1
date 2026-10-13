@@ -1790,10 +1790,9 @@ function xgFor(ctx) {
 /* plays minutes t0..t1, adding goals and cards to ctx.ev */
 function runPeriod(G, ctx, t0, t1) {
   refreshStrength(G, ctx);
-  const [xgH, xlet [xgH, xgA] = xgFor(ctx);
+  let [xgH, xgA] = xgFor(ctx);
   const mH = (ctx.ment && ctx.ment.h) || 0, mA = (ctx.ment && ctx.ment.a) || 0;
   xgH *= 1 + 0.12 * mH + 0.10 * mA; xgA *= 1 + 0.12 * mA + 0.10 * mH;
-  const frac = (t1 - t0 + 1) / 90;gA] = xgFor(ctx);
   const frac = (t1 - t0 + 1) / 90;
   const made = [];
   const addGoals = (n, side) => {
