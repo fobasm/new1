@@ -4469,7 +4469,7 @@ function pushTick(e) {
   t.insertBefore(row, t.firstChild);
 }
 
-function liveSchedule() {
+function stopExtra(ls) {   const base = ls.half === 1 ? 45 : 92;   if (ls.minute < base) return 0;   if (ls.stopAdd == null || ls.stopHalf !== ls.half) {     const lo = ls.half === 1 ? 0 : 46, hi = ls.half === 1 ? 45 : 92;     const n = ls.ctx.ev.filter(e => e.min >= lo && e.min <= hi && e.type !== 'goal').length;     ls.stopAdd = Math.max(ls.half === 1 ? 1 : 0, Math.min(ls.half === 1 ? 4 : 3, Math.round(n * 0.6)));     ls.stopHalf = ls.half;   }   return ls.stopAdd; } function liveSchedule() {
   const ls = liveState;
   clearTimeout(ls.timer);
   ls.timer = setTimeout(liveTick, 6520 / ls.speed);
@@ -4570,6 +4570,11 @@ function liveTick() {
           if (priorYellow) { e.card = 'red'; e.secondYellow = true; }
         }
         e._shown = true; pushTick(e);
+        if (e.type === 'card') {
+          liveBanner((e.card === 'red' ? '🟥 ' : '🟨 ') + e.sName + (e.card === 'red' ? ' sent off' : ' booked'));
+          clearTimeout(ls.flashT);
+          ls.flashT = setTimeout(() => { if (liveState === ls && !ls.paused) liveBanner(''); }, 2200);
+        }
         if (e.type === 'goal') {
           liveBanner((e.penalty ? '⚽ PENALTY SCORED! ' : '⚽ GOAL! ') + e.sName);
           clearTimeout(ls.flashT);
